@@ -1,0 +1,19 @@
+# VS Code
+.vscode/
+.idea/
+
+# PYTHON
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+
+# ENTORNO VIRTUAL (nombre: venv)
+venv/
+venv.bak/
+
+# ARCHIVOS TEMPORALES
+*.tmp
+*.swp
+.DS_Store

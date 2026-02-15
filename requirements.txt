@@ -1,0 +1,7 @@
+shiny
+pandas
+pytesseract
+pdfplumber
+pillow
+openai
+openpyxl
