@@ -21,7 +21,7 @@ from llm_client import extract_invoice
 
 # Campos obligatorios definidos por contrato con el modelo
 REQUIRED_FIELDS = [
-    "numero_orden",
+   # "numero_orden", -> quitamos numero de orden (no esta en la factura, lo asignamos nosotros)
     "numero_factura",
     "fecha",
     "cif",
@@ -160,3 +160,43 @@ def process_invoice_text(text: str) -> Dict[str, Any]:
     validate_amount_field(parsed_data)
 
     return parsed_data
+
+from typing import List
+
+
+def process_multiple_invoices(pages_text: List[str]) -> List[Dict[str, Any]]:
+    """
+    Procesa múltiples facturas (una por página).
+
+    Recibe:
+        Lista de textos (uno por página).
+
+    Devuelve:
+        Lista de diccionarios validados listos para exportación.
+    """
+
+    invoices = []
+
+    for index, page_text in enumerate(pages_text, start=1):
+        if not page_text.strip():
+            continue  # Saltar páginas vacías
+
+        try:
+           # Procesar factura individual
+            invoice_data = process_invoice_text(page_text)
+
+            #AQUÍ va el número de orden
+            invoice_data["numero_orden"] = index
+
+            #Añadir a la lista final
+            invoices.append(invoice_data)
+
+        except InvoiceProcessingError as e:
+            # Puedes decidir:
+            # - Saltar factura
+            # - Loguear error
+            # - O añadir registro de error estructurado
+            print(f"Error en página {index}: {e}")
+            continue
+
+    return invoices
