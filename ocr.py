@@ -15,6 +15,8 @@ from PIL import Image
 SUPPORTED_IMAGE_EXTENSIONS = (".jpg", ".jpeg", ".png")
 SUPPORTED_PDF_EXTENSIONS = (".pdf",)
 
+pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+
 
 class OCRExtractionError(Exception):
     """Custom exception for OCR extraction errors."""

@@ -1,7 +1,7 @@
 from ocr import extract_text_by_pages, OCRExtractionError
-from llm_client import extract_invoice
-from processor import process_multiple_invoices
-from excel_export import export_invoices_to_excel
+from llm_extractor import extract_invoice
+from envoice_processor import process_multiple_invoices
+from envoice_excel_export import export_invoices_to_excel
 
 
 def test_file(path):
@@ -13,7 +13,7 @@ def test_file(path):
 
         for i, page in enumerate(pages, start=1):
             print(f"\n--- Página {i} ---")
-            print(page[:500])  # primeros 500 caracteres
+            print(page[:800])  # primeros 500 caracteres
 
         return pages
 
@@ -34,4 +34,4 @@ if __name__ == "__main__":
 
 
 # Exportar a Excel
-export_invoices_to_excel(facturas, "resultado.xlsx")
+# export_invoices_to_excel(facturas, "resultado.xlsx")
