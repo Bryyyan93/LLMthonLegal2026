@@ -100,7 +100,7 @@ def extract_deed_chunk(chunk):
     prompt = f"""
     Eres un sistema experto en análisis de escrituras notariales españolas.
 
-    Extrae únicamente la información presente en el texto.
+    Tu tarea es identificar bloques de inventario y adjudicaciones de forma estrictamente literal.
 
     Devuelve exclusivamente un JSON válido.
     No incluyas explicaciones.
@@ -112,36 +112,89 @@ def extract_deed_chunk(chunk):
 
     {{
     "numero_escritura": string | null,
-    "tipo": string | null,
-    "inmuebles": [
+    "inventario": [
         {{
+        "numero": int,
+        "tipo": "Bien inmueble | Saldo bancario | Valor mobiliario | Ajuar | ...",
         "descripcion": string | null,
-        "direccion": string | null,
-        "municipio": string | null,
         "referencias_catastrales": [string],
-        "regimen": "ganancial" | "privativo" | null
+        "regimen": "ganancial | privativo | desconocido"
         }}
     ],
+    "adjudicaciones": [
+        {{
+        "numero_inventario": int,
+        "cuota": string | null,
+        "beneficiario": string | null
+        }}
+  ],
     "alertas": [string]
     }}
 
-    Reglas:
-    - Si un dato no aparece, usar null.
-    - No duplicar referencias catastrales.
-    - Extraer referencias catastrales exactamente como aparecen.
-    - No interpretar, solo extraer.
-    - Solo considerar como referencia catastral códigos alfanuméricos largos (mínimo 10 caracteres).
-    - No incluir números de inventario.
+    REGLAS ESTRICTAS:
+    - No extraer números de papel timbrado.
+
+    1. NUMERO_ESCRITURA:
+    - Solo debe extraerse cuando aparezca precedido por la palabra "NÚMERO" 
+        en mayúsculas al inicio de línea. (ej: DOS MIL QUINIENTOS TREINTA Y SEIS)
+    - Puede estar escrito en cifra.
+    - No extraer códigos alfanuméricos.
+
+    2. IDENTIFICACIÓN DE NÚMERO DE INVENTARIO
+    Solo se considera número de inventario cuando:
+    - Está seguido inmediatamente por ".-"
+    - Patrón válido: ^\s*\d+\s*\.\s*-
+    - Ese número es el campo "numero".
+    - Es obligatorio extraerlo si existe.
+    - No confundir con número de escritura.
+    - Ejemplo: "11.- DESCRIPCIÓN"
+
+    3. DESCRIPCIÓN
+    - La descripción es todo el texto comprendido desde el encabezado numerado
+        hasta antes del siguiente encabezado numerado.
+    - Extraerla completa sin resumir.
+
+    4. RÉGIMEN
+    - Si el bloque aparece bajo un encabezado que indique:
+        "NATURALEZA GANANCIAL" → "ganancial"
+        "NATURALEZA PRIVATIVA" → "privativo"
+    - Si no aparece ninguna indicación expresa, coge el del chunck anterior.
+    - No inferir por contexto implícito.
+
+    5. REFERENCIAS CATASTRALES
+    - Solo cadenas que cumplan exactamente:
+        7 dígitos + 1 letra + 7 dígitos + 2 letras
+    - Exactamente 20 caracteres.
     - No incluir importes.
     - No incluir números aislados.
-    - Si el inmueble está dentro de un bloque que indique "ACTIVOS DE NATURALEZA GANANCIAL", marcar "regimen": "ganancial".
-    - Si el inmueble está dentro de un bloque que indique "ACTIVO DE NATURALEZA PRIVATIVA", marcar "regimen": "privativo".
-    - Si no se puede determinar, usar null.
+    - No duplicar.
 
+    6. TIPO
+    - Si en la descripción aparecen expresiones como:
+        "campo", "vivienda", "finca", "parcela", "solar" → "Bien inmueble"
+        "cuenta", "saldo", "IBAN" → "Saldo bancario"
+        "acciones", "participaciones", "fondo" → "Valor mobiliario"
+    - Si no encaja claramente → "Otro"
+
+    7. ADJUDICACIONES
+    - Frases como:
+        "mitad indivisa del número X"
+        "se adjudica el número X"
+        "adjudicado a"
+        deben generar entrada en "adjudicaciones".
+
+    8. PROHIBIDO:
+    - Inventar datos.
+    - Completar información implícita.
+    - Reinterpretar unidades antiguas.
+    - Cambiar redacción original.
+
+    Si un dato no aparece, usar null.
+    
     Texto:
     {chunk}
     """
-
+    #- No crear un elemento en "inventario" a partir de una adjudicación o cuota.
     response = client.chat.completions.create(
         model = modelo,
         messages=[{"role": "user", "content": prompt}],

@@ -129,10 +129,10 @@ def process_deed(full_text) -> Dict[str, Any]:
         if not tipo:
             tipo = parsed.get("tipo")
 
-        # Inmuebles
-        properties = parsed.get("inmuebles", [])
-        if isinstance(properties, list):
-            all_properties.extend(properties)
+        # Inventario
+        items = parsed.get("inventario", [])
+        if isinstance(items, list):
+            all_properties.extend(items)
 
         # Alertas
         alerts = parsed.get("alertas", [])
@@ -179,7 +179,7 @@ def process_deed(full_text) -> Dict[str, Any]:
     return {
         "numero_escritura": numero_escritura,
         "tipo": tipo,
-        "inmuebles": all_properties,
+        "inventario": all_properties,
         "alertas_llm": all_alerts,
         "validacion_regex": validation,
         "chunks_procesados": len(chunks),

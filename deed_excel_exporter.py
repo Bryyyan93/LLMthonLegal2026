@@ -11,6 +11,7 @@ from openpyxl.styles import Font
 
 EXCEL_COLUMNS = [
     ("numero_escritura", "Nº ESCRITURA"),
+    ("numero_inventario", "Nº INVENTARIO"),
     ("tipo", "TIPO"),
     ("regimen", "RÉGIMEN"),
     ("descripcion", "DESCRIPCIÓN"),
@@ -28,20 +29,20 @@ def flatten_deed(deed_result: Dict[str, Any]) -> List[Dict[str, Any]]:
     Convierte la estructura jerárquica de escritura
     en una lista plana de filas.
     """
-
     rows = []
 
-    numero = deed_result.get("numero_escritura")
-    tipo = deed_result.get("tipo")
+    numero_escritura = deed_result.get("numero_escritura")
 
-    for inmueble in deed_result.get("inmuebles", []):
-        descripcion = inmueble.get("descripcion")
-        refs = inmueble.get("referencias_catastrales", [])
-        regimen = inmueble.get("regimen")
+    for item in deed_result.get("inventario", []):
+        numero_inv = item.get("numero")
+        tipo = item.get("tipo")
+        descripcion = item.get("descripcion")
+        refs = item.get("referencias_catastrales", [])
+        regimen = item.get("regimen")
 
         if not refs:
             rows.append({
-                "numero_escritura": numero,
+                "numero_escritura": numero_escritura,
                 "tipo": tipo,
                 "regimen": regimen,
                 "descripcion": descripcion,
@@ -50,7 +51,7 @@ def flatten_deed(deed_result: Dict[str, Any]) -> List[Dict[str, Any]]:
         else:
             for ref in refs:
                 rows.append({
-                    "numero_escritura": numero,
+                    "numero_escritura": numero_escritura,
                     "tipo": tipo,
                     "regimen": regimen,
                     "descripcion": descripcion,
