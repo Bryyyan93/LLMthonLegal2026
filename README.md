@@ -148,7 +148,7 @@ response = client.chat.completions.create(
 El sistema se ejecuta como aplicación web local utilizando `Shiny` for Python.
 Ejecutar aplicación principal:
 ```sh
-shiny app.py --reload
+shiny run app --reload
 ```
 Por defecto la aplicación se levanta en entorno local y es accesible desde:
 ```sh
