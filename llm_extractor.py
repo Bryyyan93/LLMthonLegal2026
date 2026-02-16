@@ -1,7 +1,7 @@
 from openai import OpenAI
 
-modelo = "qwen2.5-7b-instruct-1m"
-# modelo = "google/gemma-3-4b"
+#modelo = "qwen2.5-7b-instruct-1m"
+modelo = "google/gemma-3-4b"
 
 client = OpenAI(
     base_url="http://localhost:1234/v1",
@@ -61,18 +61,23 @@ def extract_invoice(text):
     - Si un dato no aparece, usar null.
     - No inventar datos.
 
-    Reglas específicas para "cantidad":
-    - Debe ser un número sin símbolos.
-    - No debe contener el símbolo €.
+    Reglas para "cantidad":
+    - En cada línea de consumo, la tabla sigue esta estructura:
+        - Ref. Fecha / Hora Producto Establecimiento Matrícula Km Cantidad P.Un. Dto. Importe
+        - La "cantidad" es el valor numérico situado inmediatamente antes de la columna "P.Un.".
     - No debe formar parte del nombre del producto (ejemplo: "Gasol 5").
-    - No debe ser una fecha ni una hora.
-    - Convertir coma decimal a punto.
-    - Mantener signo negativo si existe.
+    - Copiar EXACTAMENTE el signo que aparece en el texto.
     - Ignorar números entre corchetes [ ].
+    - Si no hay símbolo "-" delante del número, la cantidad es positiva.
+    - No inferir signos negativos.
+    Es decir:
+    - Es el número que aparece justo antes del precio unitario.
+    - No es el precio unitario.
+    - No es el descuento.
+    - No es el importe final.
     - Ignorar números que aparezcan en secciones como:
         "Totales", "Resumen de Carburantes", "Desglose de Impuestos".
     - La cantidad debe extraerse exclusivamente de la línea de consumo individual.
-
 
     Reglas para "fecha":
     - Formato obligatorio YYYY-MM-DD.
