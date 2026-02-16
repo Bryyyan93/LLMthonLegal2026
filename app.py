@@ -11,17 +11,11 @@ from envoice_excel_export import export_invoices_to_excel
 # ---------------------------
 # UI
 # ---------------------------
-
 app_ui = ui.page_fluid(
-
     ui.h2("Procesamiento documental jurídico"),
-
     ui.layout_sidebar(
-
         ui.sidebar(
-
             ui.h4("Facturas"),
-
             ui.input_file(
                 "facturas",
                 "Subir facturas (PDF / imágenes)",
@@ -30,13 +24,9 @@ app_ui = ui.page_fluid(
             ),
 
             ui.input_action_button("procesar_facturas", "Procesar facturas"),
-
             ui.output_ui("descargar_facturas_ui"),
-
             ui.hr(),
-
             ui.h4("Escrituras"),
-
             ui.input_file(
                 "escrituras",
                 "Subir escrituras (PDF / imágenes)",
@@ -45,16 +35,12 @@ app_ui = ui.page_fluid(
             ),
 
             ui.input_action_button("procesar_escrituras", "Procesar escrituras"),
-
             ui.output_ui("descargar_escrituras_ui")
         ),
 
         ui.div(
-
             ui.output_ui("estado_valuebox"),
-
             ui.br(),
-
             ui.card(
                 ui.card_header("Resultado"),
                 ui.output_data_frame("tabla_resultado")
@@ -63,13 +49,11 @@ app_ui = ui.page_fluid(
     )
 )
 
-
 # ---------------------------
 # SERVER
 # ---------------------------
 
 def server(input, output, session):
-
     estado = reactive.Value("esperando")
     df_facturas = reactive.Value(None)
     excel_facturas_path = reactive.Value(None)
@@ -80,7 +64,6 @@ def server(input, output, session):
     # -----------------------
     # VALUE BOX
     # -----------------------
-
     @output
     @render.ui
     def estado_valuebox():
@@ -106,7 +89,6 @@ def server(input, output, session):
     # -----------------------
     # PROCESAR FACTURAS
     # -----------------------
-
     @reactive.effect
     @reactive.event(input.procesar_facturas)
     def procesar_facturas():
@@ -155,7 +137,6 @@ def server(input, output, session):
     # -----------------------
     # TABLA RESULTADO
     # -----------------------
-
     @output
     @render.data_frame
     def tabla_resultado():
@@ -173,7 +154,6 @@ def server(input, output, session):
     # -----------------------
     # BOTÓN DESCARGA FACTURAS
     # -----------------------
-
     @output
     @render.ui
     def descargar_facturas_ui():
@@ -195,6 +175,5 @@ def server(input, output, session):
         if path and os.path.exists(path):
             with open(path, "rb") as f:
                 yield f.read()
-
 
 app = App(app_ui, server)
