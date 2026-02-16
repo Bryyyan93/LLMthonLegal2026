@@ -12,6 +12,7 @@ from openpyxl.styles import Font
 EXCEL_COLUMNS = [
     ("numero_escritura", "Nº ESCRITURA"),
     ("tipo", "TIPO"),
+    ("regimen", "RÉGIMEN"),
     ("descripcion", "DESCRIPCIÓN"),
     ("referencia_catastral", "REFERENCIA CATASTRAL"),
 ]
@@ -36,11 +37,13 @@ def flatten_deed(deed_result: Dict[str, Any]) -> List[Dict[str, Any]]:
     for inmueble in deed_result.get("inmuebles", []):
         descripcion = inmueble.get("descripcion")
         refs = inmueble.get("referencias_catastrales", [])
+        regimen = inmueble.get("regimen")
 
         if not refs:
             rows.append({
                 "numero_escritura": numero,
                 "tipo": tipo,
+                "regimen": regimen,
                 "descripcion": descripcion,
                 "referencia_catastral": None
             })
@@ -49,6 +52,7 @@ def flatten_deed(deed_result: Dict[str, Any]) -> List[Dict[str, Any]]:
                 rows.append({
                     "numero_escritura": numero,
                     "tipo": tipo,
+                    "regimen": regimen,
                     "descripcion": descripcion,
                     "referencia_catastral": ref
                 })

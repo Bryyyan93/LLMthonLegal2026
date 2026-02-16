@@ -26,7 +26,6 @@ class OCRExtractionError(Exception):
 # -------------------------------------------------
 # TEXT CLEANING
 # -------------------------------------------------
-
 def clean_text(text: str) -> str:
     """
     Clean extracted text:
@@ -47,7 +46,6 @@ def clean_text(text: str) -> str:
 # -------------------------------------------------
 # FILE TYPE HELPERS
 # -------------------------------------------------
-
 def is_pdf(file_path: str) -> bool:
     return file_path.lower().endswith(SUPPORTED_PDF_EXTENSIONS)
 

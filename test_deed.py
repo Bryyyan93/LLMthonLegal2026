@@ -1,6 +1,6 @@
 from ocr import extract_text_by_pages
 from deed_validator import process_deed
-from llm_extractor import export_deeds_to_excel
+from deed_excel_exporter import export_deeds_to_excel
 
 def test_deed(path):
     text = extract_text_by_pages(path)

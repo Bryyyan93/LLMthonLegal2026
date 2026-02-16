@@ -7,9 +7,11 @@ import logging
 from ocr import extract_text_by_pages, OCRExtractionError
 from envoice_processor import process_multiple_invoices
 from envoice_excel_export import export_invoices_to_excel
+from deed_validator import process_deed
+from deed_excel_exporter import export_deeds_to_excel, flatten_deed
 
 logging.basicConfig(
-    level=logging.INFO,  # DEBUG si quieres más detalle
+    level=logging.INFO,  # DEBUG se quiere más detalle
     format="%(levelname)s : %(asctime)s - %(name)s - %(message)s"
 )
 
@@ -59,7 +61,6 @@ app_ui = ui.page_fluid(
 # ---------------------------
 # SERVER
 # ---------------------------
-
 def server(input, output, session):
     estado = reactive.Value("esperando")
     df_facturas = reactive.Value(None)
@@ -145,6 +146,42 @@ def server(input, output, session):
         estado.set("finalizado")
 
     # -----------------------
+    # PROCESAR ESCRITURAS
+    # -----------------------
+    # flujo
+    # 1 PDF → 1 estructura → 1 Excel
+    @reactive.effect
+    @reactive.event(input.procesar_escrituras)
+    def procesar_escrituras():
+        archivos = input.escrituras()
+        if not archivos:
+            return
+
+        estado.set("procesando")
+
+        fileinfo = archivos[0]  # SOLO uno
+        path = fileinfo["datapath"]
+        nombre = fileinfo["name"]
+
+        pages = extract_text_by_pages(path)
+
+        result = process_deed(pages)
+
+        result["archivo_origen"] = nombre
+
+        df = pd.DataFrame(flatten_deed(result))  # opcional para mostrar tabla
+        df_escrituras.set(df)
+
+        tmp_dir = tempfile.gettempdir()
+        output_file = os.path.join(tmp_dir, "escritura.xlsx")
+
+        export_deeds_to_excel(result, output_file)
+
+        excel_escrituras_path.set(output_file)
+
+        estado.set("finalizado")
+
+    # -----------------------
     # TABLA RESULTADO
     # -----------------------
     @output
@@ -185,5 +222,32 @@ def server(input, output, session):
         if path and os.path.exists(path):
             with open(path, "rb") as f:
                 yield f.read()
+
+    # -----------------------
+    # BOTÓN DESCARGA ESCRITURAS
+    # -----------------------
+    @output
+    @render.ui
+    def descargar_escrituras_ui():
+
+        if excel_escrituras_path.get() is not None:
+            return ui.download_button(
+                "download_escrituras",
+                "Descargar Excel escrituras"
+            )
+
+        return ui.div()
+
+
+    @output
+    @render.download(filename="escrituras.xlsx")
+    def download_escrituras():
+
+        path = excel_escrituras_path.get()
+
+        if path and os.path.exists(path):
+            with open(path, "rb") as f:
+                yield f.read()
+
 
 app = App(app_ui, server)

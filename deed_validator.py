@@ -9,19 +9,15 @@ from deed_processor import extract_catastral_refs_regex, validate_references
 # ==========================
 # CONFIGURACIÓN LOGGING
 # ==========================
-
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s | %(levelname)s | %(message)s"
 )
 
 logger = logging.getLogger(__name__)
-
-
 # ==========================
 # NORMALIZACIÓN DE TEXTO
 # ==========================
-
 def normalize_text(full_text) -> str:
     """
     Asegura que el texto siempre sea string.
@@ -67,7 +63,6 @@ def safe_json_load(raw: str):
 # ==========================
 # CHUNKING SEGURO
 # ==========================
-
 def chunk_text(text: str, max_chars: int = 4000) -> List[str]:
     """
     Divide el texto en bloques seguros para modelos 4k.
@@ -81,16 +76,12 @@ def chunk_text(text: str, max_chars: int = 4000) -> List[str]:
     logger.info(f"Texto dividido en {len(chunks)} chunks.")
     return chunks
 
-
 # ==========================
 # FUNCIÓN PRINCIPAL
 # ==========================
-
 def process_deed(full_text) -> Dict[str, Any]:
-
     logger.info("Inicio de procesamiento de escritura.")
 
-    # 🔥 ARREGLO CRÍTICO
     full_text = normalize_text(full_text)
 
     chunks = chunk_text(full_text)
@@ -153,7 +144,6 @@ def process_deed(full_text) -> Dict[str, Any]:
     # ==========================
     # DEDUPLICACIÓN
     # ==========================
-
     for prop in all_properties:
         refs = prop.get("referencias_catastrales", [])
         if isinstance(refs, list):
@@ -162,9 +152,7 @@ def process_deed(full_text) -> Dict[str, Any]:
     # ==========================
     # VALIDACIÓN GLOBAL REGEX
     # ==========================
-
     logger.info("Validando referencias catastrales por regex...")
-
     try:
         regex_refs = extract_catastral_refs_regex(full_text)
     except Exception as e:

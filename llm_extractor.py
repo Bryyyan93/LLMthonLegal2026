@@ -118,7 +118,8 @@ def extract_deed_chunk(chunk):
         "descripcion": string | null,
         "direccion": string | null,
         "municipio": string | null,
-        "referencias_catastrales": [string]
+        "referencias_catastrales": [string],
+        "regimen": "ganancial" | "privativo" | null
         }}
     ],
     "alertas": [string]
@@ -133,6 +134,9 @@ def extract_deed_chunk(chunk):
     - No incluir números de inventario.
     - No incluir importes.
     - No incluir números aislados.
+    - Si el inmueble está dentro de un bloque que indique "ACTIVOS DE NATURALEZA GANANCIAL", marcar "regimen": "ganancial".
+    - Si el inmueble está dentro de un bloque que indique "ACTIVO DE NATURALEZA PRIVATIVA", marcar "regimen": "privativo".
+    - Si no se puede determinar, usar null.
 
     Texto:
     {chunk}
