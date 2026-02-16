@@ -2,11 +2,18 @@ from shiny import ui, App, render, reactive
 import pandas as pd
 import os
 import tempfile
+import logging
 
 from ocr import extract_text_by_pages, OCRExtractionError
 from envoice_processor import process_multiple_invoices
 from envoice_excel_export import export_invoices_to_excel
 
+logging.basicConfig(
+    level=logging.INFO,  # DEBUG si quieres más detalle
+    format="%(levelname)s : %(asctime)s - %(name)s - %(message)s"
+)
+
+logger = logging.getLogger(__name__)
 
 # ---------------------------
 # UI
@@ -101,13 +108,16 @@ def server(input, output, session):
 
         todas = []
 
+        logger.info("Inicio procesamiento de factura")
         for fileinfo in archivos:
             path = fileinfo["datapath"]
             nombre = fileinfo["name"]
 
             try:
                 pages = extract_text_by_pages(path)
+                logger.info("OCR completado")
                 facturas = process_multiple_invoices(pages)
+                logger.info("Extracción LLM completada")
 
                 for f in facturas:
                     f["archivo_origen"] = nombre
@@ -131,7 +141,7 @@ def server(input, output, session):
         export_invoices_to_excel(todas, output_file)
 
         excel_facturas_path.set(output_file)
-
+        logger.info("Procesamiento finalizado")
         estado.set("finalizado")
 
     # -----------------------
