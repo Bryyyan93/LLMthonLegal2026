@@ -23,7 +23,7 @@ def test_file(path):
 if __name__ == "__main__":
     print("Cargar el fichero")
 
-    pages = test_file("./data/PRUEBA 1.pdf")
+    pages = test_file("./data/PRUEBA 2.pdf")
 
     print("\nProcesar facturas...")
     facturas = process_multiple_invoices(pages)
