@@ -62,6 +62,8 @@ deed_processor.py
     ↓
 deed_validator.py
     ↓
+catastro_enricher.py
+    ↓
 deed_excel_exporter.py
 ```
 ## 5. Estructura del Proyecto
