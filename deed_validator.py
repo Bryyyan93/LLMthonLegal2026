@@ -87,7 +87,6 @@ def process_deed(full_text) -> Dict[str, Any]:
     chunks = chunk_text(full_text)
 
     all_properties = []
-    numero_escritura = None
     tipo = None
     all_alerts = []
     failed_chunks = 0
@@ -121,10 +120,6 @@ def process_deed(full_text) -> Dict[str, Any]:
             all_alerts.append(f"JSON inválido en chunk {idx + 1}")
             failed_chunks += 1
             continue
-
-        # Datos generales (solo una vez)
-        if not numero_escritura:
-            numero_escritura = parsed.get("numero_escritura")
 
         if not tipo:
             tipo = parsed.get("tipo")
@@ -176,8 +171,11 @@ def process_deed(full_text) -> Dict[str, Any]:
     if failed_chunks == len(chunks):
         logger.error("Todos los chunks fallaron. Resultado inválido.")
 
+    # GENERAR INDICE SECUENCIAL
+    for idx, prop in enumerate(all_properties, start=1):
+        prop["id_fila"] = idx
+
     return {
-        "numero_escritura": numero_escritura,
         "tipo": tipo,
         "inventario": all_properties,
         "alertas_llm": all_alerts,

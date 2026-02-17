@@ -99,7 +99,6 @@ def extract_text_by_pages(file_path: str) -> List[str]:
 # -------------------------------------------------
 # PDF HANDLING
 # -------------------------------------------------
-
 def _extract_pdf_by_pages(file_path: str) -> List[str]:
     pages_text = []
 
@@ -118,7 +117,6 @@ def _extract_pdf_by_pages(file_path: str) -> List[str]:
 # -------------------------------------------------
 # IMAGE HANDLING
 # -------------------------------------------------
-
 def _extract_image(file_path: str) -> str:
     try:
         with Image.open(file_path) as img:

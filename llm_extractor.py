@@ -97,10 +97,10 @@ def extract_invoice(text):
 
 
 def extract_deed_chunk(chunk):
-    prompt = f"""
+    prompt = rf"""
     Eres un sistema experto en análisis de escrituras notariales españolas.
 
-    Tu tarea es identificar bloques de inventario y adjudicaciones de forma estrictamente literal.
+    Tu tarea es extraer EXCLUSIVAMENTE bienes inmuebles del inventario.
 
     Devuelve exclusivamente un JSON válido.
     No incluyas explicaciones.
@@ -111,85 +111,76 @@ def extract_deed_chunk(chunk):
     Estructura obligatoria:
 
     {{
-    "numero_escritura": string | null,
     "inventario": [
         {{
-        "numero": int,
-        "tipo": "Bien inmueble | Saldo bancario | Valor mobiliario | Ajuar | ...",
+        "tipo": "Bien inmueble",
         "descripcion": string | null,
         "referencias_catastrales": [string],
         "regimen": "ganancial | privativo | desconocido"
         }}
     ],
-    "adjudicaciones": [
-        {{
-        "numero_inventario": int,
-        "cuota": string | null,
-        "beneficiario": string | null
-        }}
   ],
     "alertas": [string]
     }}
 
     REGLAS ESTRICTAS:
     - No extraer números de papel timbrado.
+    - Un bloque solo puede incluirse si comienza con un encabezado numerado con el formato:
+        ^\s*\d+\s*\.\s*-
+    - Si el texto no comienza con un encabezado numerado válido:
+        - NO es inventario.
+        - NO incluirlo.
 
-    1. NUMERO_ESCRITURA:
-    - Solo debe extraerse cuando aparezca precedido por la palabra "NÚMERO" 
-        en mayúsculas al inicio de línea. (ej: DOS MIL QUINIENTOS TREINTA Y SEIS)
-    - Puede estar escrito en cifra.
-    - No extraer códigos alfanuméricos.
+    - Solo se incluirán en el array "inventario" aquellos bloques cuya descripción
+    contenga de forma literal alguna de las siguientes palabras:
+        "finca"
+        "vivienda"
+        "departamento"
+        "parcela"
+        "solar"
+        "local"
+        "garaje"
+        "trastero"
+        "campo"
+    - Si NO contiene ninguna de esas palabras → NO incluir el bloque en el JSON.
 
-    2. IDENTIFICACIÓN DE NÚMERO DE INVENTARIO
-    Solo se considera número de inventario cuando:
-    - Está seguido inmediatamente por ".-"
-    - Patrón válido: ^\s*\d+\s*\.\s*-
-    - Ese número es el campo "numero".
-    - Es obligatorio extraerlo si existe.
-    - No confundir con número de escritura.
-    - Ejemplo: "11.- DESCRIPCIÓN"
+    - En ese caso simplemente ignorarlo.
+    - No añadirlo como "Otro".
+    - No añadirlo con null.
+    - No generar alerta.
 
-    3. DESCRIPCIÓN
+    DESCRIPCIÓN
     - La descripción es todo el texto comprendido desde el encabezado numerado
         hasta antes del siguiente encabezado numerado.
     - Extraerla completa sin resumir.
+    - Si esta vacio, ignorarlo
 
-    4. RÉGIMEN
+    RÉGIMEN
     - Si el bloque aparece bajo un encabezado que indique:
         "NATURALEZA GANANCIAL" → "ganancial"
         "NATURALEZA PRIVATIVA" → "privativo"
     - Si no aparece ninguna indicación expresa, coge el del chunck anterior.
     - No inferir por contexto implícito.
 
-    5. REFERENCIAS CATASTRALES
-    - Solo cadenas que cumplan exactamente:
-        7 dígitos + 1 letra + 7 dígitos + 2 letras
-    - Exactamente 20 caracteres.
-    - No incluir importes.
-    - No incluir números aislados.
-    - No duplicar.
+    REFERENCIAS CATASTRALES
+    - Exactamente 20 caracteres
+    - Sin espacios
+    - Sin guiones
+    - Sin puntos
+    - Solo mayúsculas
+    - Solo incluir referencias que cumplan EXACTAMENTE el patrón del ejemplo:
+        - Ejemplo válido: 9959606YI1895N0001XY
+        - Ejemplo inválido: 70625591
 
-    6. TIPO
-    - Si en la descripción aparecen expresiones como:
-        "campo", "vivienda", "finca", "parcela", "solar" → "Bien inmueble"
-        "cuenta", "saldo", "IBAN" → "Saldo bancario"
-        "acciones", "participaciones", "fondo" → "Valor mobiliario"
-    - Si no encaja claramente → "Otro"
+    - Si una cadena no cumple EXACTAMENTE ese patrón:
+        - NO incluirla en el bloque en el inventario
+        - Ignorarla completamente
 
-    7. ADJUDICACIONES
-    - Frases como:
-        "mitad indivisa del número X"
-        "se adjudica el número X"
-        "adjudicado a"
-        deben generar entrada en "adjudicaciones".
-
-    8. PROHIBIDO:
+    PROHIBIDO:
     - Inventar datos.
     - Completar información implícita.
     - Reinterpretar unidades antiguas.
     - Cambiar redacción original.
-
-    Si un dato no aparece, usar null.
     
     Texto:
     {chunk}

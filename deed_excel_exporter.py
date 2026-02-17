@@ -10,8 +10,7 @@ from openpyxl.styles import Font
 
 
 EXCEL_COLUMNS = [
-    ("numero_escritura", "Nº ESCRITURA"),
-    ("numero_inventario", "Nº INVENTARIO"),
+    ("id_fila", "INDICE"),
     ("tipo", "TIPO"),
     ("regimen", "RÉGIMEN"),
     ("descripcion", "DESCRIPCIÓN"),
@@ -31,10 +30,8 @@ def flatten_deed(deed_result: Dict[str, Any]) -> List[Dict[str, Any]]:
     """
     rows = []
 
-    numero_escritura = deed_result.get("numero_escritura")
-
     for item in deed_result.get("inventario", []):
-        numero_inv = item.get("numero")
+        id_fila = item.get("id_fila")
         tipo = item.get("tipo")
         descripcion = item.get("descripcion")
         refs = item.get("referencias_catastrales", [])
@@ -42,7 +39,7 @@ def flatten_deed(deed_result: Dict[str, Any]) -> List[Dict[str, Any]]:
 
         if not refs:
             rows.append({
-                "numero_escritura": numero_escritura,
+                "id_fila": id_fila,
                 "tipo": tipo,
                 "regimen": regimen,
                 "descripcion": descripcion,
@@ -51,7 +48,7 @@ def flatten_deed(deed_result: Dict[str, Any]) -> List[Dict[str, Any]]:
         else:
             for ref in refs:
                 rows.append({
-                    "numero_escritura": numero_escritura,
+                    "id_fila": id_fila,
                     "tipo": tipo,
                     "regimen": regimen,
                     "descripcion": descripcion,
@@ -70,6 +67,10 @@ def export_deeds_to_excel(
 
     if not rows:
         raise ExcelExportError("No hay datos para exportar.")
+    
+    # Generar índice secuencial
+    for idx, row in enumerate(rows, start=1):
+        row["id_fila"] = idx
 
     wb = Workbook()
     ws = wb.active
