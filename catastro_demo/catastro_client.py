@@ -3,7 +3,6 @@ from .catastro_protegido import FakeProtectedClient
 
 
 class CatastroClient:
-
     def __init__(self, modo="libre", certificado=None):
         self.modo = modo
 
